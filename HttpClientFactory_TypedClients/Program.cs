@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Collections.Generic;
 
 namespace HttpClientFactory_TypedClients
 {
@@ -30,21 +31,33 @@ namespace HttpClientFactory_TypedClients
             => config
                     .SetBasePath(Environment.CurrentDirectory)
                     .AddEnvironmentVariables()
-                    .AddJsonFile("appsettings.json", optional: true);
+                    .AddJsonFile("appsettings.json", optional: false);
 
         private static void ConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
         {
+
+            var settings = hostContext.Configuration.GetSection(nameof(GitHubClientSettings)).Get<GitHubClientSettings>();
+
             services.AddHttpClient();
-            services.AddHttpClient("githubClient", c =>
+            services.AddHttpClient(settings.ClientName, c =>
             {
-                c.BaseAddress = new Uri("https://api.github.com/");
-                c.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
-                c.DefaultRequestHeaders.Add("User-Agent", "HttpClientFactory-Sample");
+                c.BaseAddress = new Uri(settings.BaseAddress);
+                foreach (var header in settings.Headers)
+                {
+                    c.DefaultRequestHeaders.Add(header.Key, header.Value);
+                }
             });
 
             services.AddSingleton<GitHubClient>();
 
             services.AddHostedService<MyHttpClientService>();
         }
+    }
+
+    public class GitHubClientSettings
+    {
+        public string ClientName { get; set; }
+        public string BaseAddress { get; set; }
+        public Dictionary<string, string> Headers { get; set; }
     }
 }

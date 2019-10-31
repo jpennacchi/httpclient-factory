@@ -10,7 +10,7 @@ namespace HttpClientFactory_TypedClients.Clients
 
         public GitHubClient(IHttpClientFactory clientFactory)
         {
-            _client = clientFactory.CreateClient("githubClient");
+            _client = clientFactory.CreateClient("GitHubClient");
         }
 
         public async Task<string> GetData() => await _client.GetStringAsync("/");
