@@ -14,21 +14,28 @@ namespace HttpClientFactory_NamedClients
 
         public MyHttpClientService(IHttpClientFactory clientFactory)
         {
-            _client = clientFactory.CreateClient("githubClient");
+            _client = clientFactory.CreateClient("localhostClient");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var response = await GetData();
+            var httpResponseMessage = await GetDataFromHttpResponseMessage();
 
-            Console.WriteLine($"Results: {response}");
+            //httpResponseMessage.EnsureSuccessStatusCode();
+
+            if (httpResponseMessage.Content is object 
+                && httpResponseMessage.Content.Headers.ContentType.MediaType == "application/json")
+            {
+                Console.WriteLine($"Results: {await httpResponseMessage.Content.ReadAsStringAsync()}");
+            }
+            else
+            {
+                Console.WriteLine("HTTP Response was invalid and cannot be deserialised.");
+            }
         }
 
-        private async Task<string> GetData()
-        {
-
-            return await _client.GetStringAsync("/");
-        }
+        public async Task<HttpResponseMessage> GetDataFromHttpResponseMessage()
+            => await _client.GetAsync("/Edenred.Services/InvoiceQueue/Dequeue/ACCMM_AGENT/Rest");
 
     }
 }

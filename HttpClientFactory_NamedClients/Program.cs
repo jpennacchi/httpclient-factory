@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Net.Http.Headers;
 
 namespace HttpClientFactory_NamedClients
 {
@@ -11,7 +12,9 @@ namespace HttpClientFactory_NamedClients
         {
             Console.WriteLine("Working with HttpClient Named Client...");
 
-            var host = CreateHostBuilder(args).UseConsoleLifetime().Build();
+            var host = CreateHostBuilder(args)
+                        .UseConsoleLifetime()
+                        .Build();
 
             host.Run();
         }
@@ -32,11 +35,11 @@ namespace HttpClientFactory_NamedClients
         private static void ConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
         {
             services.AddHttpClient();
-            services.AddHttpClient("githubClient", c =>
+            services.AddHttpClient("localhostClient", c =>
             {
-                c.BaseAddress = new Uri("https://api.github.com/");
-                c.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
-                c.DefaultRequestHeaders.Add("User-Agent", "HttpClientFactory-Sample");
+                c.BaseAddress = new Uri("http://localhost:8080");
+                c.DefaultRequestHeaders.Add("Host", "localhost");
+                c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             });
 
             services.AddHostedService<MyHttpClientService>();
